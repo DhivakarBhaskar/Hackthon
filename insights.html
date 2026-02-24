@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold m-0 text-white" style="letter-spacing: 1px;"><i
+            class="bi bi-cpu-fill text-info me-2 glow-text"></i>AI Financial Command Center</h3>
+    <button class="btn btn-outline-info fw-bold rounded-pill px-4" style="box-shadow: 0 0 15px rgba(0,229,255,0.2);"
+        data-bs-toggle="modal" data-bs-target="#incomeExpenseModal">
+        <i class="bi bi-terminal me-2"></i> View Raw Data
+    </button>
+</div>
+
+<!-- FINANCIAL SURVIVAL PREDICTION HERO -->
+<!-- FINANCIAL SURVIVAL PREDICTION HERO -->
+<div class="fin-card py-5 mb-4 position-relative overflow-hidden fade-in" {% if survival_color=='warning' %}
+    style="background: linear-gradient(180deg, rgba(255,170,0,0.05) 0%, rgba(10,10,12,0.8) 100%); border-top: 3px solid var(--bs-warning);"
+    {% elif survival_color=='danger' %}
+    style="background: linear-gradient(180deg, rgba(255,0,85,0.05) 0%, rgba(10,10,12,0.8) 100%); border-top: 3px solid var(--bs-danger);"
+    {% else %}
+    style="background: linear-gradient(180deg, rgba(0,229,255,0.05) 0%, rgba(10,10,12,0.8) 100%); border-top: 3px solid var(--bs-success);"
+    {% endif %}>
+    <div class="container position-relative z-1 text-center">
+        <h6 class="text-uppercase fw-bold text-{{ survival_color }} mb-3" style="letter-spacing: 2px;">
+            <i class="bi bi-shield-lock me-2"></i>Financial Survival Prediction
+        </h6>
+        {% if survival_color == 'warning' %}
+        <h1 class="display-4 fw-bold text-white mb-2" style="text-shadow: 0 0 20px rgba(255,170,0,0.3);">
+            {% elif survival_color == 'danger' %}
+            <h1 class="display-4 fw-bold text-white mb-2" style="text-shadow: 0 0 20px rgba(255,0,85,0.3);">
+                {% else %}
+                <h1 class="display-4 fw-bold text-white mb-2" style="text-shadow: 0 0 20px rgba(0,229,255,0.3);">
+                    {% endif %}
+                    {{ survival_message }}
+                </h1>
+                <p class="text-muted fs-5 mb-0">Based on your average daily spend and current remaining balance for the
+                    month.
+                </p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- BEHAVIOUR DETECTION PANEL -->
+    <div class="col-lg-4 d-flex">
+        <div class="fin-card p-4 w-100 flex-column d-flex glass-panel fade-in">
+            <h6 class="text-info text-uppercase fw-bold mb-4"><i class="bi bi-eye me-2"></i>Behaviour Insights</h6>
+            <div class="d-flex flex-column gap-3 flex-grow-1">
+                {% for insight in behaviour_insights %}
+                <div class="p-3 rounded-3"
+                    style="background: rgba(0, 229, 255, 0.05); border-left: 3px solid var(--bs-info);">
+                    <p class="mb-0 fw-medium text-white">{{ insight }}</p>
+                </div>
+                {% else %}
+                <div class="p-3 rounded-3 text-center h-100 d-flex flex-column justify-content-center"
+                    style="background: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--bs-success);">
+                    <p class="mb-0 text-success fw-medium"><i
+                            class="bi bi-check-circle-fill me-2 fs-3 d-block mb-2"></i> No behaviour insights yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- SMART ADVICE ENGINE -->
+    <div class="col-lg-4 d-flex">
+        <div class="fin-card p-4 w-100 flex-column d-flex glass-panel fade-in">
+            <h6 class="text-warning text-uppercase fw-bold mb-4"><i class="bi bi-magic me-2"></i>Smart Advice Engine
+            </h6>
+            <div class="d-flex flex-column gap-3 flex-grow-1">
+                {% for rule in smart_rules %}
+                <div class="p-3 rounded-3"
+                    style="background: rgba(255, 170, 0, 0.05); border-left: 3px solid var(--bs-warning);">
+                    <p class="mb-0 fw-medium text-white">{{ rule }}</p>
+                </div>
+                {% else %}
+                <div class="p-3 rounded-3 text-center h-100 d-flex flex-column justify-content-center"
+                    style="background: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--bs-success);">
+                    <p class="mb-0 text-success fw-medium"><i
+                            class="bi bi-check-circle-fill me-2 fs-3 d-block mb-2"></i> Your spending is
+                        optimal. Keep it up!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- FINANCIAL STABILITY SCORE -->
+    <div class="col-lg-4 d-flex">
+        <div class="fin-card p-4 w-100 d-flex flex-column justify-content-center align-items-center position-relative overflow-hidden glass-panel fade-in"
+            style="border: 1px solid rgba(178,0,255,0.2);">
+            <div class="w-100 text-start text-muted text-uppercase fw-bold mb-1" style="color: #b200ff !important;">
+                <i class="bi bi-cpu me-2"></i>Financial Stability Score
+            </div>
+
+            <div class="position-relative d-flex justify-content-center align-items-center flex-grow-1 w-100 mt-2"
+                style="min-height: 200px;">
+                <!-- Animated Circular Gauge using Chart.js doughnut -->
+                <canvas id="stabilityScoreChart"></canvas>
+
+                <div class="position-absolute d-flex flex-column justify-content-center align-items-center text-center pb-2"
+                    style="pointer-events: none;">
+                    <span class="fw-bold text-white d-block"
+                        style="font-size: 2.2rem; line-height: 1; text-shadow: 0 0 15px rgba(178,0,255,0.4);">
+                        {{ financial_stability_score }}<span style="font-size: 1rem; color: #b200ff;">/100</span>
+                    </span>
+                    <span class="fw-bold text-uppercase mt-1"
+                        style="font-size: 0.65rem; letter-spacing: 2px; color: #b200ff;">Health</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS SECTION -->
+<div class="row g-4 mb-4">
+    <!-- Money Leak Chart (Category Spend) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 glass-panel h-100">
+            <div class="card-body p-4 d-flex flex-column text-white">
+                <h5 class="fw-bold mb-1"><i class="bi bi-pie-chart text-primary me-2"></i>Money Leak Chart</h5>
+                <p class="text-muted small mb-4">Breakdown of expense categories</p>
+                <div class="flex-grow-1 position-relative" style="min-height: 300px;">
+                    <canvas id="moneyLeakChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Daily Spending Trend (Line) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 glass-panel h-100">
+            <div class="card-body p-4 d-flex flex-column text-white">
+                <h5 class="fw-bold mb-1"><i class="bi bi-graph-up text-info me-2"></i>Daily Spending Trend</h5>
+                <p class="text-muted small mb-4">Your daily expenses over time</p>
+                <div class="flex-grow-1 position-relative" style="min-height: 300px;">
+                    <canvas id="dailyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Income vs Expense (Bar) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 glass-panel h-100">
+            <div class="card-body p-4 d-flex flex-column text-white">
+                <h5 class="fw-bold mb-1"><i class="bi bi-wallet2 text-success me-2"></i>Income vs Expense</h5>
+                <p class="text-muted small mb-4">Comparison of cash flow</p>
+                <div class="flex-grow-1 position-relative" style="min-height: 300px;">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Weekly Risk Day (Bar) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 glass-panel h-100">
+            <div class="card-body p-4 d-flex flex-column text-white">
+                <h5 class="fw-bold mb-1"><i class="bi bi-calendar-range text-warning me-2"></i>Weekly Risk Day</h5>
+                <p class="text-muted small mb-4">Spending by day of the week</p>
+                <div class="flex-grow-1 position-relative" style="min-height: 300px;">
+                    <canvas id="weeklyRiskChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for View Raw Data -->
+<div class="modal fade" id="incomeExpenseModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content glass-panel border-0 shadow-lg rounded-4 overflow-hidden"
+            style="background: rgba(10,10,12,0.95);">
+            <div class="modal-header border-bottom border-info border-opacity-25 p-4 text-white"
+                style="background: rgba(0, 229, 255, 0.05);">
+                <h5 class="modal-title fw-bold text-info"><i class="bi bi-terminal me-2"></i> Raw Transaction Data
+                    Overview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0" style="background: transparent;">
+                        <thead class="sticky-top bg-dark" style="z-index: 1;">
+                            <tr>
+                                <th class="text-info text-uppercase border-info border-opacity-25"
+                                    style="letter-spacing: 1px;">Date</th>
+                                <th class="text-info text-uppercase border-info border-opacity-25"
+                                    style="letter-spacing: 1px;">Description</th>
+                                <th class="text-info text-uppercase border-info border-opacity-25"
+                                    style="letter-spacing: 1px;">Category</th>
+                                <th class="text-info text-uppercase border-info border-opacity-25 text-end"
+                                    style="letter-spacing: 1px;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody style="border-top: 1px solid rgba(0,229,255,0.2);">
+                            {% for t in raw_transactions %}
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td class="text-muted align-middle py-3">{{ t.date }}</td>
+                                <td class="text-white align-middle fw-medium">{{ t.description or 'N/A' }}</td>
+                                <td class="align-middle"><span
+                                        class="badge bg-secondary bg-opacity-25 text-light border border-secondary px-2 py-1">{{
+                                        t.category }}</span></td>
+                                <td
+                                    class="text-end align-middle fw-bold {% if t.type == 'income' %}text-success{% else %}text-danger{% endif %} text-shadow-sm">
+                                    {{ '+' if t.type == 'income' else '-' }}₹{{ "%.0f"|format(t.amount or 0) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                                    System awaiting transaction data input.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden metrics for JS calculations -->
+<script>
+    // Safely parse Jinja-injected JSON so charts never crash on null/undefined
+    function safeParseArray(jinjaJson) {
+        try {
+            const parsed = JSON.parse(jinjaJson);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function safeParseNumber(jinjaJson) {
+        try {
+            const parsed = JSON.parse(jinjaJson);
+            return (typeof parsed === 'number' && !isNaN(parsed)) ? parsed : 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    const categoryLabels = safeParseArray('{{ category_labels | tojson | safe }}');
+    const categoryValues = safeParseArray('{{ category_values | tojson | safe }}');
+    const dailyLabels = safeParseArray('{{ daily_labels | tojson | safe }}');
+    const dailyValues = safeParseArray('{{ daily_values | tojson | safe }}');
+    const weekdayLabels = safeParseArray('{{ weekday_labels | tojson | safe }}');
+    const weekdayValues = safeParseArray('{{ weekday_values | tojson | safe }}');
+    const incomeTotal = safeParseNumber('{{ income_total | tojson | safe }}');
+    const expenseTotal = safeParseNumber('{{ expense_total | tojson | safe }}');
+    const daysInMonth = {{ remaining_days_in_month }} + (new Date()).getDate();
+    const currentDayOfMonth = (new Date()).getDate();
+
+    console.log("Jinja Data Check:", {
+        categoryLabels,
+        categoryValues,
+        dailyLabels,
+        dailyValues,
+        weekdayLabels,
+        weekdayValues,
+        incomeTotal,
+        expenseTotal
+    });
+
+    // Provide backward compatibility for main.js and AI Command Center gauges
+    const stabilityScoreRaw = '{{ financial_stability_score | tojson | safe }}';
+    let stabilityScoreParsed = 0;
+    try {
+        stabilityScoreParsed = parseInt(String(stabilityScoreRaw).replace(/^"|"$/g, ''), 10);
+    } catch (e) {
+        stabilityScoreParsed = 0;
+    }
+    if (isNaN(stabilityScoreParsed)) stabilityScoreParsed = 0;
+
+    window.FIN_DATA = {
+        categoryLabels: categoryLabels,
+        categoryValues: categoryValues,
+        dailyLabels: dailyLabels,
+        dailyValues: dailyValues,
+        weekLabels: weekdayLabels,
+        weekValues: weekdayValues,
+        totalIncome: incomeTotal,
+        totalExpense: expenseTotal,
+        daysInMonth: daysInMonth,
+        currentDayOfMonth: currentDayOfMonth,
+        stabilityScore: stabilityScoreParsed
+    };
+</script>
+
+{% endblock %}

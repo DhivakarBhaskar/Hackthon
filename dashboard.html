@@ -1,0 +1,656 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Overspending banner when real balance goes negative -->
+{% if current_balance is defined and current_balance < 0 %}
+<div class="alert alert-danger border-0 rounded-4 mb-3 shadow-sm">
+    <i class="bi bi-exclamation-octagon-fill me-2"></i>You are overspending this month.
+</div>
+{% endif %}
+
+<!-- Survival Prediction (Hero Module) -->
+<div class="fin-card py-5 mb-4 position-relative overflow-hidden fade-in" {% if alert_color=='warning' %}
+    style="background: linear-gradient(180deg, rgba(255,170,0,0.05) 0%, rgba(10,10,12,0.8) 100%); border-top: 3px solid var(--bs-warning);"
+    {% elif alert_color=='danger' %}
+    style="background: linear-gradient(180deg, rgba(255,0,85,0.05) 0%, rgba(10,10,12,0.8) 100%); border-top: 3px solid var(--bs-danger);"
+    {% else %}
+    style="background: linear-gradient(180deg, rgba(0,229,255,0.05) 0%, rgba(10,10,12,0.8) 100%); border-top: 3px solid var(--bs-success);"
+    {% endif %}>
+
+    <div class="position-relative z-1 container">
+        <div class="row align-items-center">
+            <div class="col-md-8 text-center text-md-start mb-4 mb-md-0">
+                <h6 class="text-uppercase fw-bold text-{{ alert_color or 'success' }} mb-2"
+                    style="letter-spacing: 2px;"><i class="bi bi-radar me-2"></i>Financial Survival Prediction</h6>
+
+                {% if alert_color == 'success' %}
+                <h1 class="display-5 fw-bold text-white mb-3" style="text-shadow: 0 0 20px rgba(0,229,255,0.3);">You are
+                    safe for the month</h1>
+                <p class="text-muted fs-5 mb-1">Current trajectory indicates funds will easily exceed the remaining
+                    <strong class="text-white">{{ remaining_days }} days</strong>.
+                </p>
+                <p class="text-muted mb-0">
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50">
+                        Available Balance: ₹{{ "%.0f"|format(current_balance or 0) }}
+                    </span>
+                </p>
+                {% else %}
+                {% if alert_color == 'warning' %}
+                <h1 class="display-5 fw-bold text-white mb-3" style="text-shadow: 0 0 20px rgba(255,170,0,0.3);">
+                    {% else %}
+                    <h1 class="display-5 fw-bold text-white mb-3" style="text-shadow: 0 0 20px rgba(255,0,85,0.3);">
+                        {% endif %}
+                        You will run out of money in <span class="text-{{ alert_color }}">{{ forecast_days }}</span>
+                        days
+                    </h1>
+                    <p class="text-muted fs-5 mb-1">Your average daily burn of <strong class="text-white">₹{{
+                            "%.0f"|format(weekly_avg_daily_expense or 0) }}</strong> exceeds safe limits for the month.
+                    </p>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50">
+                            Available Balance: ₹{{ "%.0f"|format(current_balance or 0) }}
+                        </span>
+                    </p>
+                    {% endif %}
+            </div>
+
+            <div class="col-md-4 d-flex justify-content-center">
+                <!-- Circular Animated Countdown Ring -->
+                <!-- BUG 1 FIX: Show remaining_days when safe, forecast_days otherwise -->
+                <div class="position-relative" style="width: 180px; height: 180px;">
+                    {% if alert_color == 'warning' %}
+                    <svg viewBox="0 0 36 36" class="circular-chart w-100 h-100 warning"
+                        style="filter: drop-shadow(0 0 15px var(--bs-warning));">
+                        {% elif alert_color == 'danger' %}
+                        <svg viewBox="0 0 36 36" class="circular-chart w-100 h-100 danger"
+                            style="filter: drop-shadow(0 0 15px var(--bs-danger));">
+                            {% else %}
+                            <svg viewBox="0 0 36 36" class="circular-chart w-100 h-100 success"
+                                style="filter: drop-shadow(0 0 15px var(--bs-success));">
+                                {% endif %}
+                                <path class="circle-bg" stroke="rgba(255,255,255,0.05)" stroke-width="2.5" fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <!-- BUG 2 FIX: Clamp financial_score to 0-100 before injecting into stroke-dasharray -->
+                                <path class="circle" stroke="var(--bs-{{ alert_color or 'success' }})"
+                                    stroke-width="2.5"
+                                    stroke-dasharray="{{ [[financial_score or 0, 0]|max, 100]|min }}, 100"
+                                    stroke-linecap="round" fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    style="transition: stroke-dasharray 2s ease-out;" />
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center w-100">
+                                <!-- BUG 1 FIX: Conditionally display remaining_days on success, forecast_days otherwise -->
+                                <span class="fs-2 fw-bold text-white d-block" style="line-height: 1;">
+                                    {{ remaining_days if alert_color == 'success' else forecast_days }}<span
+                                        class="fs-5 text-muted">d</span>
+                                </span>
+                                <span class="text-uppercase text-{{ alert_color or 'success' }} fw-bold"
+                                    style="font-size: 0.65rem; letter-spacing: 1px;">Remaining</span>
+                            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <button class="btn w-100 py-3 fw-bold rounded-4"
+            style="background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.4); color: #00e5ff; box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);"
+            data-bs-toggle="modal" data-bs-target="#canISpendModal">
+            <i class="bi bi-question-circle fs-5 d-block mb-1"></i> Can I Buy Something?
+        </button>
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-primary w-100 py-3 fw-bold rounded-4"
+            style="box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);" data-bs-toggle="modal"
+            data-bs-target="#manualEntryModal">
+            <i class="bi bi-plus-lg fs-5 d-block mb-1"></i> Log Expense
+        </button>
+    </div>
+    <div class="col-md-4">
+        <button class="btn w-100 py-3 fw-bold rounded-4"
+            style="background: rgba(178, 0, 255, 0.1); border: 1px solid rgba(178, 0, 255, 0.4); color: #b200ff; box-shadow: 0 0 15px rgba(178, 0, 255, 0.1);"
+            data-bs-toggle="modal" data-bs-target="#saveMoneyModal">
+            <i class="bi bi-lightbulb fs-5 d-block mb-1"></i> How to Save Money
+        </button>
+    </div>
+</div>
+
+<!-- Smart Insights & Advice -->
+<div class="row g-4 mb-4">
+    <!-- Financial Stability Gauge -->
+    <div class="col-lg-4 d-flex">
+        <div class="fin-card p-4 w-100 d-flex flex-column justify-content-center align-items-center position-relative overflow-hidden glow-hover fade-in"
+            style="background: rgba(10,10,12,0.6); border: 1px solid rgba(0,229,255,0.1);">
+            <div class="w-100 text-start text-muted text-uppercase fw-bold mb-3"><i
+                    class="bi bi-cpu text-info me-2"></i>Financial Stability Score</div>
+
+            <div class="position-relative d-flex justify-content-center align-items-center"
+                style="width: 220px; height: 220px;">
+                <svg viewBox="0 0 36 36" class="circular-chart info w-100 h-100">
+                    <path class="circle-bg" stroke="rgba(255,255,255,0.05)" stroke-width="2.5" fill="none"
+                        stroke-linecap="round"
+                        d="M18 6.0845 a 11.9155 11.9155 0 0 1 0 23.831 a 11.9155 11.9155 0 0 1 0 -23.831" />
+                    <!-- BUG 2 FIX: Clamp financial_score to 0-100 on this gauge too -->
+                    <path class="circle" stroke="#00e5ff" stroke-width="2.5"
+                        stroke-dasharray="{{ [[financial_score or 0, 0]|max, 100]|min }}, 100" stroke-linecap="round"
+                        fill="none" d="M18 6.0845 a 11.9155 11.9155 0 0 1 0 23.831 a 11.9155 11.9155 0 0 1 0 -23.831"
+                        style="transition: stroke-dasharray 2s ease-out, stroke 0.5s ease; filter: drop-shadow(0 0 12px rgba(0,229,255,0.6));" />
+                </svg>
+
+                <div class="position-absolute d-flex flex-column justify-content-center align-items-center text-center">
+                    <span class="fw-bold text-white d-block"
+                        style="font-size: 3rem; line-height: 1; text-shadow: 0 0 15px rgba(0,229,255,0.4);">
+                        {{ "%.0f"|format([[financial_score or 0, 0]|max, 100]|min) }}<span
+                            style="font-size: 1.2rem; color: #00e5ff;">/100</span>
+                    </span>
+                    <span class="text-info fw-bold text-uppercase mt-2"
+                        style="font-size: 0.75rem; letter-spacing: 2px;">System Health</span>
+                </div>
+            </div>
+
+            <div class="w-100 mt-4 px-3 py-2 rounded text-center"
+                style="background: rgba(0, 229, 255, 0.05); border: 1px dashed rgba(0, 229, 255, 0.2);">
+                <small class="text-info fw-bold"><i class="bi bi-shield-check me-1"></i> Score generated by predictive
+                    AI models</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Advice -->
+    <div class="col-lg-5">
+        <div class="fin-card p-4 h-100 flex-column d-flex">
+            <h6 class="text-muted text-uppercase fw-bold mb-4"><i class="bi bi-magic text-warning me-2"></i> Personal
+                Advice</h6>
+            <div class="d-flex flex-column gap-3 flex-grow-1">
+                {% for suggestion in suggestions %}
+                <div class="p-3 rounded-3"
+                    style="background: rgba(255, 170, 0, 0.05); border-left: 3px solid var(--bs-warning);">
+                    <p class="mb-0 fw-medium text-main">{{ suggestion }}</p>
+                </div>
+                {% else %}
+                <div class="p-3 rounded-3 text-center h-100 d-flex flex-column justify-content-center"
+                    style="background: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--bs-success);">
+                    <p class="mb-0 text-success fw-medium"><i
+                            class="bi bi-check-circle-fill me-2 fs-3 d-block mb-2"></i> Your spending is
+                        optimal. Keep it up!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- No-Spend Gamification -->
+    <div class="col-lg-3">
+        <div class="fin-card p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center glow-hover"
+            style="background: linear-gradient(135deg, rgba(178, 0, 255, 0.1), rgba(10,10,12,0.8)); border: 1px solid rgba(178, 0, 255, 0.3);">
+            <div class="mb-3 position-relative">
+                <i class="bi bi-fire text-primary"
+                    style="font-size: 4rem; filter: drop-shadow(0 0 20px rgba(178, 0, 255, 0.8));"></i>
+            </div>
+            <h6 class="text-uppercase fw-bold mb-1" style="color: #b200ff; letter-spacing: 1px;">No-Spend Streak</h6>
+            <h1 class="display-3 fw-bold text-white mb-0" style="text-shadow: 0 0 15px rgba(255,255,255,0.3);">
+                {{ streak or 0 }}
+            </h1>
+            <span class="text-muted text-uppercase fw-bold" style="font-size: 0.8rem; letter-spacing: 2px;">Days</span>
+
+            <div class="mt-4 pt-3 border-top w-100" style="border-color: rgba(178, 0, 255, 0.2) !important;">
+                <p class="mb-0 small text-muted">A day without logging an expense extends your streak.</p>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- "Should I Buy This?" Decision Engine (Hero Feature) -->
+<div class="fin-card mb-4 p-4 position-relative overflow-hidden fade-in">
+    <div class="position-relative z-1">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <h5 class="fw-bold text-white mb-2">
+                    <i class="bi bi-question-diamond text-info me-2"></i>Should I Buy This?
+                </h5>
+                <p class="text-muted small mb-3">
+                    Enter an item and price to see how it impacts your month before you spend.
+                </p>
+                <div class="row g-2 align-items-center">
+                    <div class="col-12">
+                        <input type="text" id="sibItemName" class="form-control bg-dark border-secondary text-white"
+                            placeholder="Item name (e.g., New headphones)">
+                    </div>
+                    <div class="col-7 col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-white">₹</span>
+                            <input type="number" id="sibPriceInput"
+                                class="form-control bg-dark border-secondary text-white" placeholder="Price">
+                        </div>
+                    </div>
+                    <div class="col-5 col-md-4">
+                        <button id="sibEvaluateBtn" class="btn btn-primary w-100 fw-bold">
+                            Evaluate
+                        </button>
+                    </div>
+                </div>
+                <p class="text-muted small mt-2 mb-0">
+                    This assistant predicts your balance, safe daily limit, and when you might run out of money.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div id="sibResultCard"
+                    class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-50 d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span id="sibVerdictText" class="fw-bold text-white">Verdict will appear here.</span>
+                        <span id="sibRiskBadge"
+                            class="badge rounded-pill text-uppercase small fw-bold bg-secondary text-white">--</span>
+                    </div>
+                    <p id="sibRunoutMessage" class="text-muted small mb-3"></p>
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <div class="p-2 rounded-3 bg-black bg-opacity-25">
+                                <div class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Post-purchase
+                                    balance</div>
+                                <div id="sibPostBalance" class="fw-bold text-white">₹0</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded-3 bg-black bg-opacity-25">
+                                <div class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">New safe daily
+                                    limit</div>
+                                <div id="sibPostSafeDaily" class="fw-bold text-white">₹0/day</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded-3 bg-black bg-opacity-25 mt-2">
+                                <div class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Survival days
+                                    after</div>
+                                <div id="sibPostSurvival" class="fw-bold text-white">0 days</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded-3 bg-black bg-opacity-25 mt-2">
+                                <div class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Stability
+                                    score change</div>
+                                <div id="sibScoreDelta" class="fw-bold text-white">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="border-secondary border-opacity-25 my-3">
+                    <p class="mb-0 small text-muted">Safe price you can afford:
+                        <span id="sibSafePrice" class="fw-bold text-info">₹0</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Financial Activity Feed -->
+<div class="fin-card p-0 overflow-hidden mb-4 border-0 position-relative" style="background: rgba(10,10,12,0.6);">
+    <div
+        class="p-4 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center bg-dark bg-opacity-50">
+        <h6 class="text-white text-uppercase fw-bold m-0" style="letter-spacing: 1px;"><i
+                class="bi bi-activity text-info me-2"></i>Recent Financial Activity Feed</h6>
+        <button class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold" data-bs-toggle="modal"
+            data-bs-target="#manualEntryModal">
+            <i class="bi bi-plus-lg me-1"></i> Log Activity
+        </button>
+    </div>
+    <div class="p-3">
+        <div class="d-flex flex-column gap-2">
+            {% for t in transactions %}
+            <div class="d-flex align-items-center p-3 rounded-3 glass-panel glow-hover transition-all"
+                style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="flex-shrink-0 bg-{{ 'success' if t.type == 'income' else 'danger' }} bg-opacity-10 p-3 rounded-circle me-3 d-flex align-items-center justify-content-center"
+                    style="width: 48px; height: 48px;">
+                    {% if t.type == 'income' %}
+                    <i class="bi bi-arrow-down-left text-success fs-5"
+                        style="text-shadow: 0 0 10px rgba(16,185,129,0.5);"></i>
+                    {% else %}
+                    <i class="bi bi-arrow-up-right text-danger fs-5"
+                        style="text-shadow: 0 0 10px rgba(239,68,68,0.5);"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fs-6 fw-bold text-white">{{ t.description or t.category }}</span>
+                        {% if t.type == 'income' %}
+                        <span class="fs-5 fw-bold text-success" style="text-shadow: 0 0 10px rgba(16,185,129,0.3)">
+                            +₹{{ "%.0f"|format(t.amount or 0) }}
+                        </span>
+                        {% else %}
+                        <span class="fs-5 fw-bold text-danger" style="text-shadow: 0 0 10px rgba(239,68,68,0.3)">
+                            -₹{{ "%.0f"|format(t.amount or 0) }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center opacity-75">
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ t.date }}</small>
+                        <span
+                            class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-50 px-2 py-1"
+                            style="font-size: 0.7rem; letter-spacing: 0.5px;">{{ t.category }}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                <p class="mb-0">No financial activity recorded yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- "Can I Spend?" Modal -->
+<div class="modal fade" id="canISpendModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0 shadow-none">
+                <h5 class="modal-title fw-bold"><i class="bi bi-question-circle text-primary me-2"></i> Interactive
+                    Advisor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-muted mb-4">Enter planned expense amount to check if it's safe.</p>
+                <div class="input-group input-group-lg mb-4 mx-auto" style="max-width: 250px;">
+                    <span class="input-group-text bg-dark border-secondary text-white">₹</span>
+                    <!-- BUG 3 FIX: Enter key listener is wired in the script block below -->
+                    <input type="number" id="spendEstimateInput"
+                        class="form-control bg-dark border-secondary text-white text-center fw-bold" placeholder="0">
+                </div>
+
+                <button type="button" id="calculateSpendBtn"
+                    class="btn btn-primary w-100 fw-bold py-2 mb-3">Evaluate</button>
+
+                <div id="spendResultArea" class="d-none">
+                    <div id="spendResultMessage" class="alert fw-bold mb-0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Entry Modal -->
+<div class="modal fade" id="manualEntryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold">Add Transaction</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="{{ url_for('add_transaction') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Amount (₹)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="Food">Food & Dining</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Bills">Bills & Utilities</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Income">Income / Allowance</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Date</label>
+                            <input type="date" name="date" class="form-control" required
+                                value="{{ current_date or '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small">Description (Optional)</label>
+                            <input type="text" name="description" class="form-control" placeholder="What was this for?">
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary w-100">Save Transaction</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script Logic -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- "Can I Spend?" modal logic using /check_budget ---
+        const calcBtn = document.getElementById('calculateSpendBtn');
+        const resultArea = document.getElementById('spendResultArea');
+        const msg = document.getElementById('spendResultMessage');
+        const spendInput = document.getElementById('spendEstimateInput');
+
+        if (calcBtn && resultArea && msg && spendInput) {
+            function evaluateSpend() {
+                const inputVal = parseFloat(spendInput.value);
+                if (isNaN(inputVal) || inputVal <= 0) return;
+
+                resultArea.classList.remove('d-none');
+                msg.className = 'alert bg-secondary text-white fw-bold mb-0 border-0 shadow-sm';
+                msg.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div> Checking...';
+
+                fetch('/check_budget', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: inputVal })
+                })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network response was not ok');
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'safe') {
+                            msg.className = 'alert bg-success text-white fw-bold mb-0 border-0 shadow-sm';
+                            msg.innerHTML = '<i class="bi bi-shield-check me-2"></i> ' + data.message;
+                        } else {
+                            msg.className = 'alert bg-danger text-white fw-bold mb-0 border-0 shadow-sm';
+                            msg.innerHTML = '<i class="bi bi-shield-x me-2"></i> ' + data.message;
+                        }
+                    })
+                    .catch(() => {
+                        msg.className = 'alert bg-warning text-dark fw-bold mb-0 border-0 shadow-sm';
+                        msg.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i> Error calculating check.';
+                    });
+            }
+
+            calcBtn.addEventListener('click', evaluateSpend);
+
+            spendInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') evaluateSpend();
+            });
+
+            const canISpendModal = document.getElementById('canISpendModal');
+            if (canISpendModal) {
+                canISpendModal.addEventListener('show.bs.modal', function () {
+                    spendInput.value = '';
+                    resultArea.classList.add('d-none');
+                    msg.innerHTML = '';
+                });
+            }
+        }
+
+        // --- "Should I Buy This?" decision engine hero ---
+        const sibItem = document.getElementById('sibItemName');
+        const sibPrice = document.getElementById('sibPriceInput');
+        const sibBtn = document.getElementById('sibEvaluateBtn');
+        const sibCard = document.getElementById('sibResultCard');
+        const sibVerdict = document.getElementById('sibVerdictText');
+        const sibRisk = document.getElementById('sibRiskBadge');
+        const sibRunout = document.getElementById('sibRunoutMessage');
+        const sibPostBalance = document.getElementById('sibPostBalance');
+        const sibPostSafeDaily = document.getElementById('sibPostSafeDaily');
+        const sibPostSurvival = document.getElementById('sibPostSurvival');
+        const sibScoreDelta = document.getElementById('sibScoreDelta');
+        const sibSafePrice = document.getElementById('sibSafePrice');
+
+        function setDecisionStateLoading() {
+            if (!sibCard || !sibVerdict || !sibRisk) return;
+            sibCard.classList.remove('d-none');
+            sibRisk.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+            sibRisk.classList.add('bg-secondary');
+            sibVerdict.textContent = 'Analyzing purchase...';
+            sibRunout.textContent = '';
+            sibPostBalance.textContent = '—';
+            sibPostSafeDaily.textContent = '—';
+            sibPostSurvival.textContent = '—';
+            sibScoreDelta.textContent = '—';
+            sibSafePrice.textContent = '₹0';
+        }
+
+        function applyRiskStyling(riskLevel) {
+            if (!sibRisk || !sibCard) return;
+            sibRisk.classList.remove('bg-success', 'bg-warning', 'bg-danger', 'bg-secondary');
+            sibCard.classList.remove('border-success', 'border-warning', 'border-danger', 'border-secondary');
+            sibCard.classList.add('border');
+
+            if (riskLevel === 'LOW') {
+                sibRisk.classList.add('bg-success');
+                sibCard.classList.add('border-success');
+            } else if (riskLevel === 'MEDIUM') {
+                sibRisk.classList.add('bg-warning');
+                sibCard.classList.add('border-warning');
+            } else if (riskLevel === 'HIGH') {
+                sibRisk.classList.add('bg-danger');
+                sibCard.classList.add('border-danger');
+            } else {
+                sibRisk.classList.add('bg-secondary');
+                sibCard.classList.add('border-secondary');
+            }
+        }
+
+        function handleDecisionEvaluate() {
+            if (!sibItem || !sibPrice || !sibBtn || !sibCard) return;
+
+            const rawPrice = parseFloat(sibPrice.value);
+            if (isNaN(rawPrice) || rawPrice <= 0) {
+                sibCard.classList.remove('d-none');
+                sibVerdict.textContent = 'Enter a valid price to evaluate.';
+                sibRisk.textContent = '--';
+                sibRunout.textContent = '';
+                applyRiskStyling(null);
+                return;
+            }
+
+            setDecisionStateLoading();
+
+            fetch('/api/should_i_buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    item_name: sibItem.value || 'Planned purchase',
+                    price: rawPrice
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().catch(() => ({})).then(err => {
+                            throw new Error(err.error || 'Server error');
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    sibCard.classList.remove('d-none');
+
+                    const risk = data.risk_level || 'UNKNOWN';
+                    const verdict = data.verdict || 'Decision unavailable';
+
+                    sibVerdict.textContent = verdict;
+                    sibRisk.textContent = (risk || '').toString().toUpperCase() + ' RISK';
+                    sibRunout.textContent = data.runout_message || '';
+
+                    if (typeof data.post_balance === 'number') {
+                        sibPostBalance.textContent = '₹' + Math.round(data.post_balance);
+                    }
+                    if (typeof data.post_safe_daily === 'number') {
+                        sibPostSafeDaily.textContent = '₹' + Math.round(data.post_safe_daily) + '/day';
+                    }
+                    if (typeof data.post_survival_days === 'number') {
+                        const days = data.post_survival_days >= 900 ? '99+' : Math.floor(data.post_survival_days);
+                        sibPostSurvival.textContent = days + ' days';
+                    }
+                    if (typeof data.stability_delta === 'number') {
+                        const delta = data.stability_delta;
+                        const arrow = delta > 0 ? '↑' : (delta < 0 ? '↓' : '→');
+                        sibScoreDelta.textContent = `${arrow} ${Math.abs(Math.round(delta))} pts`;
+                    }
+                    if (typeof data.safe_price === 'number') {
+                        sibSafePrice.textContent = '₹' + Math.round(data.safe_price);
+                    }
+
+                    applyRiskStyling(risk);
+                })
+                .catch(err => {
+                    sibCard.classList.remove('d-none');
+                    sibVerdict.textContent = 'Unable to evaluate this purchase right now.';
+                    sibRisk.textContent = 'ERROR';
+                    sibRunout.textContent = err.message || 'Server error. Please try again.';
+                    applyRiskStyling(null);
+                });
+        }
+
+        if (sibBtn) {
+            sibBtn.addEventListener('click', handleDecisionEvaluate);
+        }
+        if (sibPrice) {
+            sibPrice.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleDecisionEvaluate();
+                }
+            });
+        }
+    });
+</script>
+
+<!-- "How to Save Money" Modal -->
+<div class="modal fade" id="saveMoneyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-0 shadow-lg"
+            style="background: rgba(10,10,12,0.95); border: 1px solid rgba(178, 0, 255, 0.3) !important;">
+            <div class="modal-header border-bottom border-secondary border-opacity-25 pb-3">
+                <h5 class="modal-title fw-bold" style="color: #b200ff;"><i class="bi bi-magic me-2"></i> Savings Advisor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4">Based on your recent transactions, here are personalized strategies to
+                    increase your savings runway.</p>
+                <div class="d-flex flex-column gap-3">
+                    {% for suggestion in suggestions %}
+                    <div class="d-flex align-items-start p-3 rounded-3"
+                        style="background: rgba(178, 0, 255, 0.05); border-left: 3px solid #b200ff;">
+                        <i class="bi bi-stars fs-4 me-3" style="color: #b200ff;"></i>
+                        <p class="mb-0 fw-medium text-main">{{ suggestion }}</p>
+                    </div>
+                    {% else %}
+                    <div class="p-3 rounded-3 text-center"
+                        style="background: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--bs-success);">
+                        <p class="mb-0 text-success fw-medium"><i class="bi bi-check-circle-fill me-2"></i> Your
+                            spending is optimal. Keep it up!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn w-100 fw-bold rounded-3"
+                    style="background: rgba(178, 0, 255, 0.1); color: #b200ff;" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

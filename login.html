@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block public_content %}
+<div
+    class="container-fluid min-vh-100 d-flex align-items-center justify-content-center login-page-bg position-relative overflow-hidden">
+
+    <!-- Background elements for depth (can be styled in CSS) -->
+    <div class="position-absolute top-0 start-0 w-100 h-100 login-particles" style="z-index: 0; pointer-events: none;">
+    </div>
+
+    <!-- Hidden overlay for the 'Analyzing...' transition -->
+    <div id="login-overlay"
+        class="login-overlay d-none flex-column align-items-center justify-content-center position-fixed top-0 start-0 w-100 h-100"
+        style="z-index: 9999; background: rgba(5, 5, 8, 0.95); backdrop-filter: blur(15px);">
+        <div class="spinner-border text-primary border-4 mb-4" style="width: 4rem; height: 4rem;" role="status"></div>
+        <h3 class="text-white fw-bold mb-3 glow-text"
+            style="letter-spacing: 1.5px; font-family: 'Space Grotesk', sans-serif;">Analyzing your financial
+            behavior...</h3>
+        <div class="progress w-50 bg-dark"
+            style="height: 6px; border-radius: 10px; max-width: 400px; overflow: hidden; box-shadow: 0 0 15px rgba(0,229,255,0.2);">
+            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" id="login-progress"
+                role="progressbar" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div class="container position-relative" style="z-index: 1;">
+        <!-- Error & Success Messages -->
+        <div class="row justify-content-center mb-3">
+            <div class="col-lg-10">
+                {% include 'includes/messages.html' %}
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-center justify-content-center">
+
+            <!-- Left Side: Login Form -->
+            <div class="col-lg-5 col-md-8 mx-auto fade-in">
+                <div class="card shadow-lg border-0 rounded-4 glass-panel custom-card position-relative glow-hover"
+                    style="transform: translateY(0);">
+                    <div class="card-body p-5 position-relative overflow-hidden">
+
+                        <!-- Decorative top glow edge -->
+                        <div class="position-absolute top-0 start-0 w-100 bg-info"
+                            style="height: 3px; box-shadow: 0 0 15px #00e5ff, 0 0 30px #00e5ff;"></div>
+
+                        <h3 class="fw-bold text-white mb-2"
+                            style="font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px;">
+                            <i class="bi bi-cpu-fill text-info me-2 glow-text"></i>System Activation
+                        </h3>
+
+                        <h4 class="fw-bold mb-3 text-primary"
+                            style="font-family: 'Outfit'; text-shadow: var(--primary-glow);">Your Financial Assistant is
+                            Ready</h4>
+                        <p class="text-muted small fw-medium mb-4" style="line-height: 1.6;">FinTrack analyzes spending
+                            behavior, predicts future balance, and gives smart financial advice.</p>
+
+                        <!-- Live Intelligence sequence -->
+                        <div class="mb-4 py-3 px-3 rounded-3 d-flex align-items-center border-start border-3 border-info"
+                            style="background: rgba(0, 229, 255, 0.05);">
+                            <div class="spinner-grow spinner-grow-sm text-info me-3" role="status"
+                                style="animation-duration: 2s;"></div>
+                            <div class="position-relative w-100" style="height: 20px; overflow: hidden;">
+                                <ul id="live-intelligence-list"
+                                    class="list-unstyled mb-0 position-absolute w-100 fw-bold text-info small letter-spacing-1 text-uppercase"
+                                    style="transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
+                                    <li>Tracking spending patterns</li>
+                                    <li>Detecting money leaks</li>
+                                    <li>Predicting monthly survival</li>
+                                    <li>Preparing personalized advice</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+                            <div class="mb-4">
+                                <label
+                                    class="form-label fw-bold small text-white-50 text-uppercase letter-spacing-1">Username</label>
+                                <div
+                                    class="input-group input-group-lg bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25 login-input-group transition-all">
+                                    <span class="input-group-text bg-transparent border-0 text-primary"><i
+                                            class="bi bi-person-bounding-box"></i></span>
+                                    <input type="text" name="username"
+                                        class="form-control border-0 bg-transparent text-white fs-6 shadow-none"
+                                        required placeholder="Enter unique ID">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label
+                                    class="form-label fw-bold small text-white-50 text-uppercase letter-spacing-1">Password</label>
+                                <div
+                                    class="input-group input-group-lg bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25 login-input-group transition-all">
+                                    <span class="input-group-text bg-transparent border-0 text-primary"><i
+                                            class="bi bi-shield-lock"></i></span>
+                                    <input type="password" name="password"
+                                        class="form-control border-0 bg-transparent text-white fs-6 shadow-none"
+                                        required placeholder="Enter security key">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="gainAccessBtn"
+                                class="btn btn-primary w-100 py-3 fw-bold shadow-lg mb-4 rounded-3 text-uppercase letter-spacing-1 position-relative overflow-hidden"
+                                style="transition: all 0.3s ease;">
+                                <span class="position-relative z-1 d-flex justify-content-center align-items-center">
+                                    Gain Access <i class="bi bi-fingerprint ms-2 fs-5"></i>
+                                </span>
+                            </button>
+
+                            <div class="text-center">
+                                <p class="text-muted m-0 small fw-medium">Don't have an account? <a
+                                        href="{{ url_for('register') }}"
+                                        class="text-decoration-none fw-bold text-info text-uppercase"
+                                        style="letter-spacing: 0.5px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);"><i
+                                            class="bi bi-terminal ms-1 me-1"></i> Register Here</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Feature Previews -->
+            <div class="col-lg-6 d-none d-lg-block fade-in" style="animation-delay: 0.3s;">
+                <h5 class="text-white text-uppercase fw-bold mb-4 ms-3"
+                    style="letter-spacing: 2px; font-family: 'Space Grotesk', sans-serif;"><i
+                        class="bi bi-stars text-warning me-2"></i> System Capabilities</h5>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="glass-panel p-4 rounded-4 h-100 glow-hover d-flex flex-column border-top border-2 border-info"
+                            style="border-top-color: rgba(0, 229, 255, 0.4) !important;">
+                            <i class="bi bi-shield-check display-5 text-info mb-3"
+                                style="filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.5));"></i>
+                            <h6 class="text-white fw-bold mb-2 fs-5">Safe Daily Spend</h6>
+                            <p class="text-white-50 small m-0 flex-grow-1" style="line-height: 1.5;">Dynamic budgets
+                                adapting daily based on your real-time balance.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="glass-panel p-4 rounded-4 h-100 glow-hover d-flex flex-column border-top border-2 border-danger"
+                            style="border-top-color: rgba(255, 0, 85, 0.4) !important;">
+                            <i class="bi bi-exclamation-triangle display-5 text-danger mb-3"
+                                style="filter: drop-shadow(0 0 12px rgba(255, 0, 85, 0.5));"></i>
+                            <h6 class="text-white fw-bold mb-2 fs-5">Survival Prediction</h6>
+                            <p class="text-white-50 small m-0 flex-grow-1" style="line-height: 1.5;">Calculates your
+                                current spending velocity to warn you before funds run out.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="glass-panel p-4 rounded-4 h-100 glow-hover d-flex flex-column border-top border-2 border-warning"
+                            style="border-top-color: rgba(255, 170, 0, 0.4) !important;">
+                            <i class="bi bi-pie-chart-fill display-5 text-warning mb-3"
+                                style="filter: drop-shadow(0 0 12px rgba(255, 170, 0, 0.5));"></i>
+                            <h6 class="text-white fw-bold mb-2 fs-5">Deep Analytics</h6>
+                            <p class="text-white-50 small m-0 flex-grow-1" style="line-height: 1.5;">Automatically
+                                uncovers your highest spending categories instantly.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="glass-panel p-4 rounded-4 h-100 glow-hover d-flex flex-column border-top border-2 border-primary"
+                            style="border-top-color: rgba(178, 0, 255, 0.4) !important;">
+                            <i class="bi bi-calendar2-x-fill display-5 text-primary mb-3"
+                                style="filter: drop-shadow(0 0 12px rgba(178, 0, 255, 0.5));"></i>
+                            <h6 class="text-white fw-bold mb-2 fs-5">Risky Day Detection</h6>
+                            <p class="text-white-50 small m-0 flex-grow-1" style="line-height: 1.5;">Algorithms analyze
+                                your weekly routine to flag your highest burn days.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Feature Previews Stack -->
+            <div class="col-12 d-lg-none mt-5 fade-in" style="animation-delay: 0.3s;">
+                <h6 class="text-center text-white-50 text-uppercase fw-bold mb-3 letter-spacing-1">Dashboard Preview
+                </h6>
+                <div class="d-flex overflow-auto gap-3 pb-4 px-2 snap-x"
+                    style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
+                    <div class="glass-panel p-3 rounded-4 flex-shrink-0 text-center glow-hover border-top border-info border-opacity-50"
+                        style="width: 220px; scroll-snap-align: center;">
+                        <i class="bi bi-shield-check fs-1 text-info mb-2"></i>
+                        <h6 class="text-white fw-bold m-0">Safe Daily Spend</h6>
+                    </div>
+                    <div class="glass-panel p-3 rounded-4 flex-shrink-0 text-center glow-hover border-top border-danger border-opacity-50"
+                        style="width: 220px; scroll-snap-align: center;">
+                        <i class="bi bi-exclamation-triangle fs-1 text-danger mb-2"></i>
+                        <h6 class="text-white fw-bold m-0">Survival Prediction</h6>
+                    </div>
+                    <div class="glass-panel p-3 rounded-4 flex-shrink-0 text-center glow-hover border-top border-warning border-opacity-50"
+                        style="width: 220px; scroll-snap-align: center;">
+                        <i class="bi bi-pie-chart-fill fs-1 text-warning mb-2"></i>
+                        <h6 class="text-white fw-bold m-0">Deep Analytics</h6>
+                    </div>
+                    <div class="glass-panel p-3 rounded-4 flex-shrink-0 text-center glow-hover border-top border-primary border-opacity-50"
+                        style="width: 220px; scroll-snap-align: center;">
+                        <i class="bi bi-calendar2-x-fill fs-1 text-primary mb-2"></i>
+                        <h6 class="text-white fw-bold m-0">Risky Day Detection</h6>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

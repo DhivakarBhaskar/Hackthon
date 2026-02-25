@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="fin-card p-0 overflow-hidden mb-4 border-0 position-relative"
+            style="background: rgba(10,10,12,0.6);">
+            <div
+                class="p-4 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center bg-dark bg-opacity-50">
+                <h4 class="text-white text-uppercase fw-bold m-0" style="letter-spacing: 1px;">
+                    <i class="bi bi-list-columns-reverse text-info me-2"></i>Full Activity History
+                </h4>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            <div class="p-3">
+                <div class="d-flex flex-column gap-3">
+                    {% for t in transactions %}
+                    <div class="d-flex align-items-center p-3 rounded-4 glass-panel glow-hover transition-all"
+                        style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="flex-shrink-0 bg-{{ 'success' if t.type == 'income' else 'danger' }} bg-opacity-10 p-3 rounded-circle me-4 d-flex align-items-center justify-content-center border border-{{ 'success' if t.type == 'income' else 'danger' }} border-opacity-25"
+                            style="width: 56px; height: 56px;">
+                            {% if t.type == 'income' %}
+                            <i class="bi bi-arrow-down-left text-success fs-4"
+                                style="text-shadow: 0 0 10px rgba(16,185,129,0.5);"></i>
+                            {% else %}
+                            <i class="bi bi-arrow-up-right text-danger fs-4"
+                                style="text-shadow: 0 0 10px rgba(239,68,68,0.5);"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-5">
+                                    <div class="fs-5 fw-bold text-white mb-1">{{ t.description or t.category }}</div>
+                                    <span
+                                        class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-50 px-2 py-1"
+                                        style="font-size: 0.75rem; letter-spacing: 0.5px;">{{ t.category }}</span>
+                                </div>
+                                <div class="col-md-4 text-md-center mt-2 mt-md-0 opacity-75">
+                                    <span class="text-muted"><i class="bi bi-calendar-event me-2"></i>{{ t.date
+                                        }}</span>
+                                </div>
+                                <div class="col-md-3 text-md-end mt-2 mt-md-0">
+                                    {% if t.type == 'income' %}
+                                    <span class="fs-4 fw-bold text-success font-monospace"
+                                        style="text-shadow: 0 0 10px rgba(16,185,129,0.3)">
+                                        +₹{{ "%.0f"|format(t.amount or 0) }}
+                                    </span>
+                                    {% else %}
+                                    <span class="fs-4 fw-bold text-danger font-monospace"
+                                        style="text-shadow: 0 0 10px rgba(239,68,68,0.3)">
+                                        -₹{{ "%.0f"|format(t.amount or 0) }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                        <p class="fs-5 mb-0">No transaction history found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold m-0 text-white"><i class="bi bi-graph-up text-info me-2"></i>Spending Analysis</h3>
+</div>
+
+<div class="fin-card p-4 fade-in">
+    <p class="text-muted small mb-3">Daily expense trend (last 30 days)</p>
+    <div style="height: 360px;">
+        <canvas id="spendingLineChart"></canvas>
+    </div>
+</div>
+
+<!-- Chart.js (only on this page) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const el = document.getElementById('spendingLineChart');
+        if (!el || typeof Chart === 'undefined') return;
+
+        const labels = {{ labels | tojson | safe }};
+        const values = {{ values | tojson | safe }};
+
+        const ctx = el.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 360);
+        gradient.addColorStop(0, 'rgba(0, 229, 255, 0.35)');
+        gradient.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Spent',
+                    data: values,
+                    borderColor: '#00e5ff',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    tension: 0.35,
+                    fill: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `₹${(context.parsed.y || 0).toLocaleString()}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: 'rgba(255,255,255,0.55)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.55)' }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}
+
+

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="fin-card p-4" style="border-top: 3px solid var(--secondary);">
+            <div
+                class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                <h4 class="fw-bold m-0 text-white"><i class="bi bi-robot text-secondary me-2"></i>AI Purchase Advisor
+                </h4>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <p class="text-muted mb-4 fs-5 text-center px-4">Let AI analyze if you can afford this right now based on
+                your remaining budget and days.</p>
+
+            <div class="row g-4 mb-4 justify-content-center">
+                <div class="col-md-8">
+                    <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Item
+                        Name</label>
+                    <input type="text" id="sibItemName" class="form-control form-control-lg"
+                        placeholder="e.g. New Shoes, Concert Ticket" autofocus>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Price
+                        (₹)</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-dark border-secondary text-white border-opacity-50">₹</span>
+                        <input type="number" id="sibPriceInput" class="form-control font-monospace fs-4"
+                            placeholder="0">
+                    </div>
+                </div>
+                <div class="col-md-8 mt-5">
+                    <button type="button" id="sibEvaluateBtn" class="btn w-100 py-3 fs-5 fw-bold rounded-4 shadow"
+                        style="background: var(--secondary); color: #000;">
+                        Analyze Purchase Risk
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Card (Hidden by default) -->
+            <div id="sibResultCard" class="card bg-dark border-secondary d-none mt-4 mx-auto shadow-lg"
+                style="max-width: 600px;">
+                <div class="card-body text-center p-4">
+                    <span id="sibRiskBadge"
+                        class="badge bg-secondary mb-3 px-4 py-2 fs-6 rounded-pill text-uppercase tracking-wide"></span>
+                    <h2 id="sibVerdictText" class="fw-bold mb-3 text-white"></h2>
+                    <p id="sibRunoutMessage" class="text-muted fs-5 mb-4"></p>
+
+                    <div class="row g-3 text-start mt-2">
+                        <div class="col-6">
+                            <div class="p-3 rounded-4 bg-dark border border-secondary border-opacity-25 h-100">
+                                <small class="text-muted d-block text-uppercase fw-bold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 1px;">Post-Purchase Balance</small>
+                                <strong id="sibPostBalance" class="text-white fs-4 font-monospace"></strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-4 bg-dark border border-secondary border-opacity-25 h-100">
+                                <small class="text-muted d-block text-uppercase fw-bold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 1px;">New Daily Limit</small>
+                                <strong id="sibPostSafeDaily" class="text-white fs-4 font-monospace"></strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-4 bg-dark border border-secondary border-opacity-25 h-100">
+                                <small class="text-muted d-block text-uppercase fw-bold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 1px;">Survival Days</small>
+                                <strong id="sibPostSurvival" class="text-white fs-4 font-monospace"></strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-4 bg-dark border border-secondary border-opacity-25 h-100">
+                                <small class="text-muted d-block text-uppercase fw-bold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 1px;">Score Change</small>
+                                <strong id="sibScoreDelta" class="text-white fs-4 font-monospace"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('sibEvaluateBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            const item = document.getElementById('sibItemName').value.trim() || "This Item";
+            const price = parseFloat(document.getElementById('sibPriceInput').value);
+            if (isNaN(price) || price <= 0) return;
+
+            const balance = {{ balance|default (0)
+        }};
+    const daysRem = {{ days_remaining|default (1) }};
+    const currentDaily = {{ safe_daily_spend|default (0) }};
+
+    const postBalance = balance - price;
+    const postDaily = postBalance > 0 ? (postBalance / daysRem) : 0;
+
+    const card = document.getElementById('sibResultCard');
+    const badge = document.getElementById('sibRiskBadge');
+    const verdict = document.getElementById('sibVerdictText');
+    const runout = document.getElementById('sibRunoutMessage');
+
+    card.classList.remove('d-none');
+    card.classList.add('fade-in');
+
+    // Logic based on FinTrack rules
+    if (price <= currentDaily) {
+        badge.className = 'badge bg-success mb-3 px-4 py-2 fs-6 rounded-pill text-uppercase tracking-wide';
+        badge.innerHTML = '<i class="bi bi-shield-check me-1"></i> SAFE TO BUY';
+        verdict.innerText = `You can easily afford ${item}`;
+        runout.innerHTML = `This purchase fits comfortably within your daily budget of ₹${currentDaily.toFixed(0)}.`;
+    } else if (postDaily >= currentDaily * 0.5) {
+        badge.className = 'badge bg-warning text-dark mb-3 px-4 py-2 fs-6 rounded-pill text-uppercase tracking-wide';
+        badge.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i> CAUTION';
+        verdict.innerText = `You can afford ${item}, but it's tight.`;
+        runout.innerHTML = `Your daily spending limit will drop significantly. Consider waiting.`;
+    } else {
+        badge.className = 'badge bg-danger mb-3 px-4 py-2 fs-6 rounded-pill text-uppercase tracking-wide';
+        badge.innerHTML = '<i class="bi bi-x-octagon me-1"></i> DANGER';
+        verdict.innerText = `Do not buy ${item} right now.`;
+        runout.innerHTML = `This purchase will severely compromise your remaining budget for the month.`;
+    }
+
+    document.getElementById('sibPostBalance').innerText = '₹' + postBalance.toFixed(0);
+    document.getElementById('sibPostSafeDaily').innerText = '₹' + postDaily.toFixed(0);
+    document.getElementById('sibPostSurvival').innerText = (postDaily > 0 ? (postBalance / {{ burn_rate |default (1) }}).toFixed(0) : "0") + ' days';
+
+    const diff = postDaily - currentDaily;
+    const sign = diff > 0 ? '+' : '';
+    document.getElementById('sibScoreDelta').innerHTML = `<span class="${diff >= 0 ? 'text-success' : 'text-danger'}">${sign}₹${diff.toFixed(0)}</span>`;
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrack - Financial Advisor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    {% if session.user_id %}
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <i class="bi bi-bank text-primary"></i> FinTrack
+            </div>
+            <div class="list-group list-group-flush mt-3">
+                <a href="{{ url_for('dashboard') }}"
+                    class="list-group-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2"></i> Dashboard
+                </a>
+                <!-- Insights Dropdown (no page navigation on toggle) -->
+                <a href="#" id="insights-toggle"
+                    class="list-group-item insights-toggle {% if request.path.startswith('/insights') %}active{% endif %}"
+                    aria-expanded="{% if request.path.startswith('/insights') %}true{% else %}false{% endif %}">
+                    <i class="bi bi-pie-chart"></i>
+                    <span class="flex-grow-1">Insights</span>
+                    <i class="bi bi-chevron-down insights-caret"></i>
+                </a>
+                <div id="insights-submenu"
+                    class="insights-submenu {% if request.path.startswith('/insights') %}show{% endif %}">
+                    <a href="{{ url_for('insights_spending') }}"
+                        class="list-group-item insights-subitem {% if request.path == '/insights/spending' %}active{% endif %}">
+                        Spending Analysis
+                    </a>
+                    <a href="{{ url_for('insights_category') }}"
+                        class="list-group-item insights-subitem {% if request.path == '/insights/category' %}active{% endif %}">
+                        Category Breakdown
+                    </a>
+                    <a href="{{ url_for('insights_stability') }}"
+                        class="list-group-item insights-subitem {% if request.path == '/insights/stability' %}active{% endif %}">
+                        Financial Stability
+                    </a>
+                    <a href="{{ url_for('insights_survival') }}"
+                        class="list-group-item insights-subitem {% if request.path == '/insights/survival' %}active{% endif %}">
+                        Survival Prediction
+                    </a>
+                    <a href="{{ url_for('insights_advice') }}"
+                        class="list-group-item insights-subitem {% if request.path == '/insights/advice' %}active{% endif %}">
+                        Personal Advice
+                    </a>
+                    <a href="{{ url_for('insights_streak') }}"
+                        class="list-group-item insights-subitem {% if request.path == '/insights/streak' %}active{% endif %}">
+                        No-Spend Streak
+                    </a>
+                </div>
+                <a href="{{ url_for('goals') }}"
+                    class="list-group-item {% if request.endpoint == 'goals' %}active{% endif %}">
+                    <i class="bi bi-bullseye"></i> Mission Center
+                </a>
+                <a href="{{ url_for('logout') }}" class="list-group-item text-danger mt-4"
+                    style="border-top: 1px solid var(--card-border);">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="system-bg">
+            <div class="login-particles w-100 h-100 position-absolute top-0 start-0 z-0"></div>
+            <nav class="fin-nav d-flex justify-content-between align-items-center mb-4 position-relative z-1">
+                <div class="d-flex align-items-center">
+                    <h5 class="m-0 fw-bold">Overview</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center"
+                            style="width: 36px; height: 36px;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span class="fw-medium">{{ session.username }}</span>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid px-4">
+                {% include 'includes/messages.html' %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Public Pages (Login/Register) -->
+    {% block public_content %}
+    <div class="container d-flex align-items-center justify-content-center min-vh-100">
+        <div class="w-100" style="max-width: 400px;">
+            {% include 'includes/messages.html' %}
+            {% block auth_content %}{% endblock %}
+        </div>
+    </div>
+    {% endblock %}
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+
+</html>

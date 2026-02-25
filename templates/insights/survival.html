@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold m-0 text-white"><i class="bi bi-radar text-warning me-2"></i>Survival Prediction</h3>
+</div>
+
+<div class="fin-card p-4 fade-in">
+    <div class="p-4 rounded-4"
+        style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+        <div class="text-uppercase fw-bold mb-2 text-{{ survival_color }}" style="letter-spacing: 1.5px;">
+            <i class="bi bi-lightning-charge me-2"></i>{{ survival_message }}
+        </div>
+        <div class="row g-3 mt-3">
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Avg daily spend</div>
+                <div class="fw-bold text-white">₹{{ "%.0f"|format(avg_daily_spend or 0) }}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Available balance</div>
+                <div class="fw-bold text-white">₹{{ "%.0f"|format(available_balance or 0) }}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Days remaining</div>
+                <div class="fw-bold text-white">{{ days_remaining }}</div>
+            </div>
+        </div>
+        <hr class="border-secondary border-opacity-25 my-4">
+        <div class="text-muted small">
+            Projection assumes your spending continues at the current month’s average.
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold m-0 text-white"><i class="bi bi-pie-chart text-primary me-2"></i>Category Breakdown</h3>
+</div>
+
+<div class="fin-card p-4 fade-in">
+    <p class="text-muted small mb-3">Expense distribution (this month)</p>
+    <div style="height: 420px;">
+        <canvas id="categoryDoughnutChart"></canvas>
+    </div>
+</div>
+
+<!-- Chart.js (only on this page) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const el = document.getElementById('categoryDoughnutChart');
+        if (!el || typeof Chart === 'undefined') return;
+
+        const labels = {{ labels | tojson | safe }};
+        const values = {{ values | tojson | safe }};
+
+        if (!labels || labels.length === 0) {
+            el.parentElement.innerHTML = '<div class="text-center text-muted mt-5">No expense data this month yet</div>';
+            return;
+        }
+
+        new Chart(el.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#00e5ff', '#ffaa00', '#b200ff', '#ff0055', '#00ffaa', '#ffbb33', '#00bcd4', '#ff2a2a'],
+                    borderColor: 'transparent',
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: 'rgba(255,255,255,0.65)', padding: 16 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const v = context.parsed || 0;
+                                return `₹${v.toLocaleString()}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}
+
+

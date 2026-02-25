@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- 1. HERO — Financial Survival Status -->
+{% set alert_color = "success" %}
+{% set alert_status = "SAFE" %}
+{% if burn_rate > 0 %}
+{% set survival_days = remaining_balance / burn_rate %}
+{% if survival_days < remaining_days %} {% set alert_color="danger" %} {% set alert_status="DANGER" %} {% elif
+    survival_days <=remaining_days + 3 %} {% set alert_color="warning" %} {% set alert_status="CAUTION" %} {% endif %}
+    {% endif %} {% if remaining_balance < 0 %} {% set alert_color="danger" %} {% set alert_status="DANGER" %} {% endif
+    %} <div class="fin-card py-4 px-4 mb-4 position-relative overflow-hidden fade-in"
+    style="background: linear-gradient(180deg, rgba(var(--bs-{{ alert_color }}-rgb), 0.06) 0%, rgba(10,10,12,0.9) 100%); border-top: 3px solid var(--bs-{{ alert_color }});">
+    <div class="row align-items-center">
+        <div class="col-lg-8 mb-3 mb-lg-0">
+            <h6 class="text-uppercase fw-bold text-{{ alert_color }} mb-2" style="letter-spacing: 2px;">
+                <i class="bi bi-radar me-2"></i>Financial Survival Prediction
+            </h6>
+
+            <!-- Interpretation Line -->
+            <h1 class="display-6 fw-bold text-white mb-3">Status: <span class="text-{{ alert_color }}">{{ alert_status
+                    }}</span></h1>
+
+            <div class="d-flex flex-wrap gap-4 mt-2">
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Available Balance
+                    </div>
+                    <div class="fs-3 fw-bold text-white">
+                        ₹{{ "%.0f"|format(remaining_balance or 0) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Days Remaining
+                    </div>
+                    <div class="fs-4 fw-semibold text-white">{{ remaining_days }}</div>
+                </div>
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Burn Rate</div>
+                    <div class="fs-4 fw-semibold text-white">₹{{ "%.0f"|format(burn_rate or 0) }}/day</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 text-lg-end text-center">
+            <span
+                class="badge rounded-pill px-4 py-3 fw-semibold fs-5 bg-{{ alert_color }} bg-opacity-25 text-{{ alert_color }}">
+                {% if alert_status == 'SAFE' %}
+                <i class="bi bi-shield-check me-1"></i> On Track
+                {% elif alert_status == 'CAUTION' %}
+                <i class="bi bi-exclamation-triangle me-1"></i> Watch Spending
+                {% else %}
+                <i class="bi bi-x-octagon me-1"></i> Overspending
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    </div>
+
+    <!-- 2. TODAY RECOMMENDATION -->
+    <div class="fin-card p-4 mb-4">
+        <h6 class="text-muted text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">
+            <i class="bi bi-calendar-check text-info me-2"></i>Today's Spending Advice
+        </h6>
+
+        <div class="d-flex align-items-baseline gap-2 mb-3">
+            <div class="text-muted fs-5">You can safely spend</div>
+            <div class="display-4 fw-bold text-white">
+                ₹{{ "%.0f"|format(safe_daily_spend or 0) }}
+            </div>
+            <div class="text-muted fs-5">today</div>
+        </div>
+
+        {% if safe_daily_spend > 150 %}
+        <div class="alert bg-success bg-opacity-10 border-0 text-success fw-semibold mb-0 p-3 rounded-4 fs-5">
+            <i class="bi bi-check-circle-fill me-2"></i>You're safe today. Normal spending allowed.
+        </div>
+        {% elif safe_daily_spend >= 80 %}
+        <div class="alert bg-warning bg-opacity-10 border-0 text-warning fw-semibold mb-0 p-3 rounded-4 fs-5">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>Spend carefully today.
+        </div>
+        {% else %}
+        <div class="alert bg-danger bg-opacity-10 border-0 text-danger fw-semibold mb-0 p-3 rounded-4 fs-5">
+            <i class="bi bi-x-circle-fill me-2"></i>Avoid optional spending today.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 3. QUICK ACTION BAR -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <a href="{{ url_for('log_expense') }}"
+                class="btn btn-primary w-100 py-3 fw-bold rounded-4 text-decoration-none">
+                <i class="bi bi-dash-circle fs-5 d-block mb-1"></i> Log Expense
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ url_for('add_income') }}" class="btn w-100 py-3 fw-bold rounded-4 text-decoration-none"
+                style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981;">
+                <i class="bi bi-plus-circle fs-5 d-block mb-1"></i> Add Income
+            </a>
+        </div>
+    </div>
+
+    <!-- 4. MINI RECENT ACTIVITY -->
+    <div class="fin-card p-0 overflow-hidden mb-4 border-0 position-relative" style="background: rgba(10,10,12,0.6);">
+        <div
+            class="p-4 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center bg-dark bg-opacity-50">
+            <h6 class="text-white text-uppercase fw-bold m-0" style="letter-spacing: 1px;">
+                <i class="bi bi-clock-history text-secondary me-2"></i>Recent Activity
+            </h6>
+            <a href="{{ url_for('activity') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold">
+                Open Activity Page <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="p-3">
+            <div class="d-flex flex-column gap-2">
+                {% for t in transactions %}
+                <div class="d-flex align-items-center p-3 rounded-3 glass-panel glow-hover transition-all"
+                    style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="flex-shrink-0 bg-{{ 'success' if t.type == 'income' else 'danger' }} bg-opacity-10 p-3 rounded-circle me-3 d-flex align-items-center justify-content-center"
+                        style="width: 48px; height: 48px;">
+                        {% if t.type == 'income' %}
+                        <i class="bi bi-arrow-down-left text-success fs-5"
+                            style="text-shadow: 0 0 10px rgba(16,185,129,0.5);"></i>
+                        {% else %}
+                        <i class="bi bi-arrow-up-right text-danger fs-5"
+                            style="text-shadow: 0 0 10px rgba(239,68,68,0.5);"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fs-6 fw-bold text-white">{{ t.description or t.category }}</span>
+                            {% if t.type == 'income' %}
+                            <span class="fs-5 fw-bold text-success" style="text-shadow: 0 0 10px rgba(16,185,129,0.3)">
+                                +₹{{ "%.0f"|format(t.amount or 0) }}
+                            </span>
+                            {% else %}
+                            <span class="fs-5 fw-bold text-danger" style="text-shadow: 0 0 10px rgba(239,68,68,0.3)">
+                                -₹{{ "%.0f"|format(t.amount or 0) }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center opacity-75">
+                            <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ t.date }}</small>
+                            <span
+                                class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-50 px-2 py-1"
+                                style="font-size: 0.7rem; letter-spacing: 0.5px;">{{ t.category }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">No recent activity.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}

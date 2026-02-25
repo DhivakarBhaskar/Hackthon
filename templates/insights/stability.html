@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold m-0 text-white"><i class="bi bi-shield-check text-info me-2"></i>Financial Stability</h3>
+</div>
+
+<div class="fin-card p-4 fade-in">
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-5 text-center text-lg-start">
+            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Stability Score</div>
+            <div class="display-4 fw-bold text-white mb-2">{{ stability_score }}/100</div>
+            <div class="progress" style="height: 12px; background: rgba(255,255,255,0.06); border-radius: 999px;">
+                <div class="progress-bar"
+                    role="progressbar"
+                    style="width: {{ stability_score }}%; background: linear-gradient(90deg, #00e5ff, #ffaa00);">
+                </div>
+            </div>
+            <p class="text-muted small mt-3 mb-0">
+                Based on your current month income, expenses, and remaining balance.
+            </p>
+        </div>
+        <div class="col-lg-7">
+            <div class="glass-panel p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Income</div>
+                        <div class="fw-bold text-success">₹{{ "%.0f"|format(total_income or 0) }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Expense</div>
+                        <div class="fw-bold text-danger">₹{{ "%.0f"|format(total_expense or 0) }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Balance</div>
+                        <div class="fw-bold text-white">₹{{ "%.0f"|format(current_balance or 0) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
